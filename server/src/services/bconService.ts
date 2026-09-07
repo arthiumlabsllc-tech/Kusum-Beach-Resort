@@ -208,7 +208,7 @@ class BconService {
   /**
    * Map crypto currency to our PaymentMethod enum.
    */
-  private mapCurrencyToMethod(currency: string): string {
+  private mapCurrencyToMethod(currency: string): any {
     const upper = currency.toUpperCase();
     if (upper === 'BTC' || upper === 'USDT' || upper === 'USDC' || upper === 'ETH') {
       return 'crypto_stablecoin';

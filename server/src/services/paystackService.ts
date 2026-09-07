@@ -222,7 +222,7 @@ class PaystackService {
   /**
    * Map Paystack channel to our PaymentMethod enum.
    */
-  private mapChannelToMethod(channel: string): string {
+  private mapChannelToMethod(channel: string): any {
     const channelLower = (channel || '').toLowerCase();
     if (channelLower.includes('momo') || channelLower.includes('mobile_money')) {
       return 'momo_mtn'; // Default to MTN for mobile money
