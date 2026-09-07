@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
+import { FiSun, FiLock, FiUser } from 'react-icons/fi';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -13,7 +14,6 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       await login(username, password);
       toast.success('Welcome back!');
@@ -26,52 +26,88 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-600 to-ocean-700 px-4">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Kusum Beach</h1>
-          <p className="text-primary-100">Resort Management Platform</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80')`,
+        }}
+      />
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/40" />
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Sign In</h2>
+      {/* Animated waves (decorative) */}
+      <div className="absolute bottom-0 left-0 right-0 h-20 opacity-20">
+        <svg viewBox="0 0 1440 120" className="w-full h-full animate-wave">
+          <path d="M0,60 C360,120 720,0 1080,60 C1260,90 1380,75 1440,60 L1440,120 L0,120 Z" fill="white" />
+        </svg>
+      </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Login Card */}
+      <div className="relative z-10 w-full max-w-md mx-4 animate-fade-in-up">
+        <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl border border-white/30 p-8">
+          {/* Logo & Title */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-500 rounded-2xl shadow-lg mb-4">
+              <FiSun className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Kusum Beach</h1>
+            <p className="text-sm text-gray-500 mt-1">Resort Management Platform</p>
+          </div>
+
+          {/* Login Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="input-field"
-                placeholder="Enter your username"
-                required
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
+              <div className="relative">
+                <FiUser className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all duration-200 bg-white/80 placeholder-gray-400"
+                  placeholder="Enter your username"
+                  required
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input-field"
-                placeholder="Enter your password"
-                required
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+              <div className="relative">
+                <FiLock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all duration-200 bg-white/80 placeholder-gray-400"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="btn-primary w-full py-3"
+              className="w-full py-3.5 px-4 rounded-xl text-white font-semibold text-sm bg-gradient-to-r from-orange-400 to-amber-500 hover:from-orange-500 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400 transition-all duration-200 shadow-lg shadow-orange-200/50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                  Signing in...
+                </span>
+              ) : (
+                'Sign In'
+              )}
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-500">
-            <p>Kokrobite, Accra, Ghana</p>
+          {/* Footer */}
+          <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+            <p className="text-xs text-gray-400">Kokrobite, Accra, Ghana</p>
+            <p className="text-[10px] text-gray-300 mt-1">Kusum Beach Management Platform v1.0</p>
           </div>
         </div>
       </div>
