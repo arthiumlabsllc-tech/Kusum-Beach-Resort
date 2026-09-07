@@ -3,6 +3,7 @@ import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { config } from '../config';
 import logger from '../lib/logger';
+import { paystackService } from '../services/paystackService';
 
 // Record cash payment
 export const recordCashPayment = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -380,5 +381,113 @@ export const processRefund = async (req: AuthRequest, res: Response): Promise<vo
     res.json({ message: 'Refund processed successfully' });
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// =============================================
+// PAYSTACK PAYMENT ENDPOINTS
+// =============================================
+
+/**
+ * Initialize a Paystack transaction.
+ * Returns the authorization_url where the customer completes payment.
+ */
+export const paystackInitialize = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { orderId, email } = req.body;
+
+    if (!orderId) {
+      res.status(400).json({ error: 'orderId is required' });
+      return;
+    }
+
+    // Fetch the order to get the amount
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      res.status(404).json({ error: 'Order not found' });
+      return;
+    }
+
+    const amount = Number(order.total);
+    const customerEmail = email || 'guest@kusumbeach.com';
+
+    const result = await paystackService.initialize({
+      orderId: order.id,
+      email: customerEmail,
+      amount,
+    });
+
+    res.json({
+      authorizationUrl: result.authorizationUrl,
+      accessCode: result.accessCode,
+      reference: result.reference,
+    });
+  } catch (error: any) {
+    logger.error('Paystack initialize error:', error);
+    res.status(500).json({ error: error.message || 'Failed to initialize Paystack payment' });
+  }
+};
+
+/**
+ * Verify a Paystack transaction after the customer completes payment.
+ */
+export const paystackVerify = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { reference } = req.body;
+
+    if (!reference) {
+      res.status(400).json({ error: 'reference is required' });
+      return;
+    }
+
+    const result = await paystackService.verify(reference);
+
+    if (!result.success) {
+      res.status(400).json({ error: result.message });
+      return;
+    }
+
+    res.json({
+      success: true,
+      message: result.message,
+      order: result.order,
+    });
+  } catch (error: any) {
+    logger.error('Paystack verify error:', error);
+    res.status(500).json({ error: error.message || 'Failed to verify Paystack payment' });
+  }
+};
+
+/**
+ * Paystack webhook handler.
+ * Receives charge.success, charge.failed, etc.
+ * No auth required — Paystack sends this directly.
+ */
+export const paystackWebhook = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Verify the webhook signature
+    const signature = req.headers['x-paystack-signature'] as string;
+    if (!signature) {
+      res.status(401).json({ error: 'Missing webhook signature' });
+      return;
+    }
+
+    const body = JSON.stringify(req.body);
+    if (!paystackService.verifyWebhookSignature(signature, body)) {
+      res.status(401).json({ error: 'Invalid webhook signature' });
+      return;
+    }
+
+    // Process the webhook event
+    await paystackService.processWebhook(req.body);
+
+    res.json({ status: 'ok' });
+  } catch (error: any) {
+    logger.error('Paystack webhook error:', error);
+    // Always return 200 to Paystack to prevent retries
+    res.status(200).json({ status: 'error', message: error.message });
   }
 };

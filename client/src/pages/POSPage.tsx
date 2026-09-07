@@ -7,6 +7,7 @@ import {
 import { toast } from 'react-toastify';
 import PaymentModal from '../components/PaymentModal';
 import ReceiptModal from '../components/ReceiptModal';
+import { usePaystack } from '../hooks/usePaystack';
 
 const categoryIcons: Record<string, string> = {
   Beers: '🍺', Spirits: '🥃', Cocktails: '🍹', 'Soft Drinks': '🥤',
@@ -28,7 +29,12 @@ const POSPage = () => {
   const [processing, setProcessing] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [receipt, setReceipt] = useState<any>(null);
+  const [paystackOrderId, setPaystackOrderId] = useState<number | null>(null);
+  const [paystackMethod, setPaystackMethod] = useState('momo_mtn');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  // Paystack config — uses test key by default
+  const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_xxx';
 
   // Fetch categories
   useEffect(() => {
@@ -119,25 +125,7 @@ const POSPage = () => {
       });
 
       const order = res.data.order;
-      setReceipt({
-        orderNumber: order.orderNumber,
-        customerName: order.customerName,
-        customerType: order.customerType,
-        items: cart.map((item) => ({
-          name: item.product?.name || 'Item',
-          quantity: item.quantity,
-          unitPrice: Number(item.unitPrice),
-          total: Number(item.total),
-        })),
-        subtotal: Number(order.subtotal),
-        discountAmount: Number(order.discountAmount) || 0,
-        taxAmount: Number(order.taxAmount) || 0,
-        total: Number(order.total),
-        paymentMethod: method,
-        createdAt: order.createdAt,
-        staffName: user.fullName || user.username || 'Staff',
-      });
-
+      showReceipt(order, method);
       setPaymentOpen(false);
       fetchProducts();
       setCart([]);
@@ -146,6 +134,108 @@ const POSPage = () => {
       toast.success('Sale completed!');
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to process sale');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  /** Build receipt data from an order response */
+  const showReceipt = (order: any, method: string) => {
+    setReceipt({
+      orderNumber: order.orderNumber,
+      customerName: order.customerName,
+      customerType: order.customerType,
+      items: cart.map((item) => ({
+        name: item.product?.name || 'Item',
+        quantity: item.quantity,
+        unitPrice: Number(item.unitPrice),
+        total: Number(item.total),
+      })),
+      subtotal: Number(order.subtotal),
+      discountAmount: Number(order.discountAmount) || 0,
+      taxAmount: Number(order.taxAmount) || 0,
+      total: Number(order.total),
+      paymentMethod: method,
+      createdAt: order.createdAt,
+      staffName: user.fullName || user.username || 'Staff',
+    });
+  };
+
+  /** Paystack: create order first, then open Paystack popup */
+  const handlePaystackPay = async (method: string) => {
+    setPaystackMethod(method);
+    setProcessing(true);
+    try {
+      // Create the order first (paymentStatus will be 'paid' from the backend)
+      const res = await api.post('/orders', {
+        customerType,
+        customerName: customerName || undefined,
+        tableNumber: tableNumber || undefined,
+        items: cart.map((item) => ({ productId: item.productId, quantity: item.quantity })),
+        taxRate: 0,
+        paymentMethod: method,
+      });
+
+      const order = res.data.order;
+      setPaystackOrderId(order.id);
+
+      // Initialize Paystack
+      const initRes = await api.post('/payments/paystack/initialize', {
+        orderId: order.id,
+        email: 'guest@kusumbeach.com',
+      });
+
+      const { authorizationUrl, reference } = initRes.data;
+
+      // Open Paystack in a new window
+      const payWindow = window.open(authorizationUrl, '_blank', 'width=500,height=700');
+
+      // Store reference for verification after user confirms
+      sessionStorage.setItem('paystack_reference', reference);
+      sessionStorage.setItem('paystack_order_id', String(order.id));
+
+      toast.info('Complete payment in the Paystack window. After payment, click "I\'ve Paid" to verify.');
+      setProcessing(false);
+
+      // Store order data for after verification
+      setPaystackOrderData(order);
+    } catch (error: any) {
+      setProcessing(false);
+      toast.error(error.response?.data?.error || 'Failed to start payment');
+    }
+  };
+
+  const [paystackOrderData, setPaystackOrderData] = useState<any>(null);
+
+  /** Verify Paystack payment after user completes it */
+  const handleVerifyPaystack = async () => {
+    const reference = sessionStorage.getItem('paystack_reference');
+    if (!reference) {
+      toast.error('No payment reference found');
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      const res = await api.post('/payments/paystack/verify', { reference });
+      if (res.data.success) {
+        toast.success('Payment verified!');
+        if (paystackOrderData) {
+          showReceipt(paystackOrderData, paystackMethod);
+        }
+        setPaymentOpen(false);
+        fetchProducts();
+        setCart([]);
+        setCustomerName('');
+        setTableNumber('');
+        sessionStorage.removeItem('paystack_reference');
+        sessionStorage.removeItem('paystack_order_id');
+        setPaystackOrderData(null);
+      } else {
+        toast.error(res.data.error || 'Payment verification failed');
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Verification failed');
     } finally {
       setProcessing(false);
     }
@@ -401,7 +491,37 @@ const POSPage = () => {
         onSubmit={handlePaymentSubmit}
         onClose={() => setPaymentOpen(false)}
         submitting={processing}
+        paystackEnabled={true}
+        onPaystackPay={handlePaystackPay}
+        paystackLoading={processing}
       />
+
+      {/* ===== Paystack Verify Banner ===== */}
+      {sessionStorage.getItem('paystack_reference') && !receipt && (
+        <div className="fixed bottom-4 right-4 z-40 bg-white rounded-xl shadow-2xl border border-blue-200 p-4 max-w-sm">
+          <p className="text-sm font-medium text-gray-900 mb-2">Payment pending verification</p>
+          <p className="text-xs text-gray-500 mb-3">Complete payment in the Paystack window, then click verify.</p>
+          <div className="flex gap-2">
+            <button
+              onClick={handleVerifyPaystack}
+              disabled={processing}
+              className="flex-1 bg-green-600 text-white rounded-lg py-2 text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors"
+            >
+              {processing ? 'Verifying...' : "I've Paid — Verify"}
+            </button>
+            <button
+              onClick={() => {
+                sessionStorage.removeItem('paystack_reference');
+                sessionStorage.removeItem('paystack_order_id');
+                setPaystackOrderData(null);
+              }}
+              className="px-3 bg-gray-100 text-gray-600 rounded-lg py-2 text-sm hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ===== Receipt Modal ===== */}
       {receipt && <ReceiptModal order={receipt} onClose={() => setReceipt(null)} />}

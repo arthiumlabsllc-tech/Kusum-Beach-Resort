@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiX, FiCheck } from 'react-icons/fi';
+import { FiX, FiCheck, FiExternalLink } from 'react-icons/fi';
 
 const paymentMethods = [
   { value: 'cash', label: 'Cash', icon: '💵' },
@@ -9,20 +9,31 @@ const paymentMethods = [
   { value: 'crypto_stablecoin', label: 'Crypto (Stablecoin)', icon: '🪙' },
 ];
 
+const isMobileMoney = (method: string) => method.startsWith('momo_');
+
 interface PaymentModalProps {
   open: boolean;
   total: number;
   onSubmit: (paymentMethod: string, amountPaid: number) => void;
   onClose: () => void;
   submitting: boolean;
+  /** When true, shows "Pay with Paystack" button for MoMo methods */
+  paystackEnabled?: boolean;
+  /** Called when user wants to pay via Paystack */
+  onPaystackPay?: (paymentMethod: string) => void;
+  /** Loading state for Paystack */
+  paystackLoading?: boolean;
 }
 
-const PaymentModal = ({ open, total, onSubmit, onClose, submitting }: PaymentModalProps) => {
+const PaymentModal = ({
+  open, total, onSubmit, onClose, submitting,
+  paystackEnabled, onPaystackPay, paystackLoading,
+}: PaymentModalProps) => {
   const [method, setMethod] = useState('cash');
   const [amountText, setAmountText] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // Reset when modal opens — prefill cash with exact total
+  // Reset when modal opens
   useEffect(() => {
     if (open) {
       setMethod('cash');
@@ -35,10 +46,15 @@ const PaymentModal = ({ open, total, onSubmit, onClose, submitting }: PaymentMod
 
   const amountPaid = parseFloat(amountText) || 0;
   const change = amountPaid - total;
-  const canSubmit = amountPaid >= total && !submitting;
+  const usePaystack = paystackEnabled && isMobileMoney(method);
+  const canSubmit = !usePaystack && amountPaid >= total && !submitting;
 
   function handleSubmit() {
-    if (!canSubmit) return;
+    if (usePaystack) {
+      // For MoMo, delegate to Paystack
+      onPaystackPay?.(method);
+      return;
+    }
     if (amountPaid < total) {
       setError('Amount is less than the total');
       return;
@@ -55,9 +71,7 @@ const PaymentModal = ({ open, total, onSubmit, onClose, submitting }: PaymentMod
       <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Take Payment
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900">Take Payment</h2>
           <button
             onClick={onClose}
             className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
@@ -87,7 +101,7 @@ const PaymentModal = ({ open, total, onSubmit, onClose, submitting }: PaymentMod
               {paymentMethods.map((pm) => (
                 <button
                   key={pm.value}
-                  onClick={() => setMethod(pm.value)}
+                  onClick={() => { setMethod(pm.value); setError(null); }}
                   className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${
                     method === pm.value
                       ? 'border-blue-500 bg-blue-50 text-blue-700 ring-1 ring-blue-500'
@@ -101,35 +115,48 @@ const PaymentModal = ({ open, total, onSubmit, onClose, submitting }: PaymentMod
             </div>
           </div>
 
-          {/* Amount */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Amount Received
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">GHS</span>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={amountText}
-                onChange={(e) => {
-                  setAmountText(e.target.value);
-                  setError(null);
-                }}
-                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="0.00"
-              />
+          {/* Amount (only for Cash) */}
+          {!usePaystack && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Amount Received
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">GHS</span>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={amountText}
+                  onChange={(e) => { setAmountText(e.target.value); setError(null); }}
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="0.00"
+                />
+              </div>
+              <button onClick={handleExactAmount} className="mt-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium">
+                Exact amount
+              </button>
             </div>
-            <button
-              onClick={handleExactAmount}
-              className="mt-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Exact amount
-            </button>
-          </div>
+          )}
 
-          {/* Change Preview */}
-          {change > 0 && (
+          {/* Paystack Info for MoMo */}
+          {usePaystack && (
+            <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 space-y-2">
+              <div className="flex items-center gap-2 text-blue-800">
+                <FiExternalLink className="text-blue-600" />
+                <span className="text-sm font-semibold">Pay with Paystack</span>
+              </div>
+              <p className="text-xs text-blue-700">
+                You'll be redirected to Paystack's secure checkout to complete the payment.
+                The customer enters their phone number and confirms with their MoMo PIN.
+              </p>
+              <p className="text-[10px] text-blue-500">
+                Test mode: Use card number 4084 0840 8408 4081, expiry any future date, CVV any 3 digits, OTP 0000.
+              </p>
+            </div>
+          )}
+
+          {/* Change Preview (Cash only) */}
+          {!usePaystack && change > 0 && (
             <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-green-800">Change Due</span>
@@ -138,7 +165,7 @@ const PaymentModal = ({ open, total, onSubmit, onClose, submitting }: PaymentMod
             </div>
           )}
 
-          {amountPaid > 0 && amountPaid < total && (
+          {!usePaystack && amountPaid > 0 && amountPaid < total && (
             <div className="rounded-lg bg-orange-50 border border-orange-200 px-4 py-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-orange-800">Still Due</span>
@@ -150,11 +177,13 @@ const PaymentModal = ({ open, total, onSubmit, onClose, submitting }: PaymentMod
 
         {/* Footer */}
         <div className="border-t border-gray-200 px-6 py-4 space-y-3">
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <span>Tendered</span>
-            <span className="font-medium">GHS {amountPaid.toFixed(2)}</span>
-          </div>
-          {change > 0 && (
+          {!usePaystack && (
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <span>Tendered</span>
+              <span className="font-medium">GHS {amountPaid.toFixed(2)}</span>
+            </div>
+          )}
+          {!usePaystack && change > 0 && (
             <div className="flex items-center justify-between text-sm font-semibold text-gray-900">
               <span>Change</span>
               <span>GHS {change.toFixed(2)}</span>
@@ -162,13 +191,22 @@ const PaymentModal = ({ open, total, onSubmit, onClose, submitting }: PaymentMod
           )}
           <button
             onClick={handleSubmit}
-            disabled={!canSubmit}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 py-3.5 text-lg font-semibold text-white shadow-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+            disabled={usePaystack ? (paystackLoading || submitting) : !canSubmit}
+            className={`w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-lg font-semibold text-white shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${
+              usePaystack
+                ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700'
+                : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
+            }`}
           >
-            {submitting ? (
+            {(paystackLoading || submitting) ? (
               <>
                 <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-                Recording...
+                {paystackLoading ? 'Opening Paystack...' : 'Recording...'}
+              </>
+            ) : usePaystack ? (
+              <>
+                <FiExternalLink />
+                Pay GHS {total.toFixed(2)} with Paystack
               </>
             ) : (
               <>

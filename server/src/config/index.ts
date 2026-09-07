@@ -17,6 +17,11 @@ export const config = {
   // CORS
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
 
+  // Paystack
+  paystackSecretKey: process.env.PAYSTACK_SECRET_KEY || '',
+  paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY || '',
+  paystackBaseUrl: process.env.PAYSTACK_BASE_URL || 'https://api.paystack.co',
+
   // MTN MoMo
   mtnMomoBaseUrl: process.env.MTN_MOMO_BASE_URL || 'https://sandbox.momodeveloper.mtn.com',
   mtnMomoSubscriptionKey: process.env.MTN_MOMO_SUBSCRIPTION_KEY || '',
