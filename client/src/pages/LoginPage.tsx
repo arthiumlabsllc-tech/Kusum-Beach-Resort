@@ -37,13 +37,6 @@ const LoginPage = () => {
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/40" />
 
-      {/* Animated waves (decorative) */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 opacity-20">
-        <svg viewBox="0 0 1440 120" className="w-full h-full animate-wave">
-          <path d="M0,60 C360,120 720,0 1080,60 C1260,90 1380,75 1440,60 L1440,120 L0,120 Z" fill="white" />
-        </svg>
-      </div>
-
       {/* Login Card */}
       <div className="relative z-10 w-full max-w-md mx-4 animate-fade-in-up">
         <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl border border-white/30 p-8">
