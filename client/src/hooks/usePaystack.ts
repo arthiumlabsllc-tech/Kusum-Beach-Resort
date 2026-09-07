@@ -84,7 +84,7 @@ export function usePaystack({ publicKey, email, amount, onSuccess, onClose, onEr
           email: email || 'guest@kusumbeach.com',
         });
 
-        const { accessCode, reference } = initRes.data;
+        const { reference } = initRes.data;
 
         // Open Paystack popup
         const handler = window.PaystackPop.setup({

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../lib/api';
 import { FiPackage, FiAlertTriangle, FiXCircle, FiShoppingCart, FiDollarSign } from 'react-icons/fi';
 
@@ -105,15 +106,15 @@ const DashboardPage = () => {
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="space-y-3">
-            <a href="/pos" className="block w-full btn-primary text-center py-3">
+            <Link to="/pos" className="block w-full btn-primary text-center py-3">
               New Sale (POS)
-            </a>
-            <a href="/products" className="block w-full btn-secondary text-center py-3">
+            </Link>
+            <Link to="/inventory" className="block w-full btn-secondary text-center py-3">
               View Inventory
-            </a>
-            <a href="/orders" className="block w-full btn-secondary text-center py-3">
+            </Link>
+            <Link to="/orders" className="block w-full btn-secondary text-center py-3">
               View Orders
-            </a>
+            </Link>
           </div>
         </div>
 
@@ -121,7 +122,7 @@ const DashboardPage = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Total Revenue</h3>
           <div className="text-center py-8">
             <p className="text-4xl font-bold text-primary-600">
-              GHS ${Number(stats?.totalRevenue || 0).toFixed(2)}
+              GHS {Number(stats?.totalRevenue || 0).toFixed(2)}
             </p>
             <p className="text-gray-500 mt-2">All-time revenue</p>
             <p className="text-sm text-gray-400 mt-1">

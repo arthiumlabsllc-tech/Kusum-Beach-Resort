@@ -72,17 +72,21 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
       where.name = { contains: search as string, mode: 'insensitive' };
     }
 
-    if (lowStock === 'true') {
-      where.stockQuantity = { lte: prisma.product.fields?.reorderLevel ?? undefined };
-    }
-
-    const products = await prisma.product.findMany({
+    let products = await prisma.product.findMany({
       where,
       include: {
         category: true,
       },
       orderBy: { name: 'asc' },
     });
+
+    // Field-to-field comparison (stockQuantity <= reorderLevel) can't be expressed
+    // in a Prisma `where`, so filter in memory after the query.
+    if (lowStock === 'true') {
+      products = products.filter(
+        (p) => p.reorderLevel > 0 && p.stockQuantity <= p.reorderLevel
+      );
+    }
 
     res.json(products);
   } catch (error) {

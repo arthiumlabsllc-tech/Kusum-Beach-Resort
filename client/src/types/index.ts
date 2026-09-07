@@ -5,6 +5,9 @@ export interface User {
   role: 'owner' | 'manager' | 'supervisor' | 'bartender' | 'waitstaff';
   email?: string;
   phone?: string;
+  isActive?: boolean;
+  lastLogin?: string;
+  createdAt?: string;
 }
 
 export interface AuthState {

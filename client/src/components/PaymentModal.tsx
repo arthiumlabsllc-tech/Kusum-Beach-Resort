@@ -87,8 +87,8 @@ const PaymentModal = ({
         </div>
 
         {/* Total Display */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 text-center text-white">
-          <p className="text-sm text-blue-200">Total Due</p>
+        <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-4 text-center text-white">
+          <p className="text-sm text-primary-200">Total Due</p>
           <p className="text-3xl font-bold">GHS {total.toFixed(2)}</p>
         </div>
 
@@ -110,7 +110,7 @@ const PaymentModal = ({
                   onClick={() => { setMethod(pm.value); setError(null); }}
                   className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${
                     method === pm.value
-                      ? 'border-blue-500 bg-blue-50 text-blue-700 ring-1 ring-blue-500'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 ring-1 ring-primary-500'
                       : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >
@@ -134,11 +134,11 @@ const PaymentModal = ({
                   inputMode="decimal"
                   value={amountText}
                   onChange={(e) => { setAmountText(e.target.value); setError(null); }}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="0.00"
                 />
               </div>
-              <button onClick={handleExactAmount} className="mt-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium">
+              <button onClick={handleExactAmount} className="mt-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium">
                 Exact amount
               </button>
             </div>
@@ -220,7 +220,7 @@ const PaymentModal = ({
                 ? 'bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800'
                 : usePaystack
                 ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700'
-                : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
+                : 'bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800'
             }`}
           >
             {(paystackLoading || submitting) ? (

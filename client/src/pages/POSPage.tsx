@@ -2,13 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import api from '../lib/api';
 import { Product, OrderItem, Category } from '../types';
 import {
-  FiSearch, FiShoppingCart, FiAlertTriangle, FiClock,
+  FiSearch, FiShoppingCart, FiAlertTriangle,
 } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import PaymentModal from '../components/PaymentModal';
 import ReceiptModal from '../components/ReceiptModal';
 import CryptoPayment from '../components/CryptoPayment';
-import { usePaystack } from '../hooks/usePaystack';
 
 const categoryIcons: Record<string, string> = {
   Beers: '🍺', Spirits: '🥃', Cocktails: '🍹', 'Soft Drinks': '🥤',
@@ -26,18 +25,13 @@ const POSPage = () => {
   const [customerType, setCustomerType] = useState<'walkin' | 'table' | 'takeaway'>('walkin');
   const [tableNumber, setTableNumber] = useState('');
   const [customerName, setCustomerName] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('cash');
   const [processing, setProcessing] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [receipt, setReceipt] = useState<any>(null);
-  const [paystackOrderId, setPaystackOrderId] = useState<number | null>(null);
   const [paystackMethod, setPaystackMethod] = useState('momo_mtn');
   const [inventoryAlerts, setInventoryAlerts] = useState<{ lowStock: number; outOfStock: number; expiringSoon: number; expired: number } | null>(null);
   const [showAlerts, setShowAlerts] = useState(true);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-  // Paystack config — uses test key by default
-  const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_xxx';
 
   // Fetch categories
   useEffect(() => {
@@ -122,7 +116,6 @@ const POSPage = () => {
   };
 
   const handlePaymentSubmit = async (method: string, _amountPaid: number) => {
-    setPaymentMethod(method);
     setProcessing(true);
     try {
       const res = await api.post('/orders', {
@@ -187,7 +180,6 @@ const POSPage = () => {
       });
 
       const order = res.data.order;
-      setPaystackOrderId(order.id);
 
       // Initialize Paystack
       const initRes = await api.post('/payments/paystack/initialize', {
@@ -198,7 +190,7 @@ const POSPage = () => {
       const { authorizationUrl, reference } = initRes.data;
 
       // Open Paystack in a new window
-      const payWindow = window.open(authorizationUrl, '_blank', 'width=500,height=700');
+      window.open(authorizationUrl, '_blank', 'width=500,height=700');
 
       // Store reference for verification after user confirms
       sessionStorage.setItem('paystack_reference', reference);
@@ -225,11 +217,12 @@ const POSPage = () => {
     setProcessing(true);
     try {
       const res = await api.post('/orders', {
-        items: cart.map((item) => ({ productId: item.id, quantity: item.quantity })),
-        paymentMethod: 'crypto_stablecoin',
-        paymentStatus: 'pending',
+        customerType,
         customerName: customerName || undefined,
         tableNumber: tableNumber || undefined,
+        items: cart.map((item) => ({ productId: item.productId, quantity: item.quantity })),
+        taxRate: 0,
+        paymentMethod: 'crypto_stablecoin',
       });
       const order = res.data.order;
       setCryptoOrderId(order.id);
@@ -299,7 +292,7 @@ const POSPage = () => {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 autoComplete="off"
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
             {/* Category Dropdown */}
@@ -307,7 +300,7 @@ const POSPage = () => {
               <select
                 value={selectedCategory === '' ? '' : String(selectedCategory)}
                 onChange={(e) => setSelectedCategory(e.target.value === '' ? '' : Number(e.target.value))}
-                className="w-full py-2.5 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                className="w-full py-2.5 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
               >
                 <option value="">All categories</option>
                 {categories.map((cat) => (
@@ -324,7 +317,7 @@ const POSPage = () => {
               type="checkbox"
               checked={onlyInStock}
               onChange={(e) => setOnlyInStock(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
             In stock only
           </label>
@@ -386,7 +379,7 @@ const POSPage = () => {
                     className={`flex flex-col justify-between rounded-lg border p-3 text-left transition-colors min-h-[100px] ${
                       !sellable
                         ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-60'
-                        : 'border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50 active:bg-blue-100'
+                        : 'border-gray-200 bg-white hover:border-primary-400 hover:bg-primary-50 active:bg-primary-100'
                     }`}
                   >
                     <span className="min-w-0">
@@ -398,7 +391,7 @@ const POSPage = () => {
                       </span>
                     </span>
                     <span className="mt-2 flex items-end justify-between gap-2">
-                      <span className="text-sm font-semibold text-blue-700">
+                      <span className="text-sm font-semibold text-primary-700">
                         GHS {Number(product.sellingPrice).toFixed(2)}
                         <span className="ml-1 text-xs font-normal text-gray-500">
                           / {product.unit}
@@ -500,7 +493,7 @@ const POSPage = () => {
               <select
                 value={customerType}
                 onChange={(e) => setCustomerType(e.target.value as any)}
-                className="py-2 px-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-28 shrink-0"
+                className="py-2 px-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 w-28 shrink-0"
               >
                 <option value="walkin">Walk-in</option>
                 <option value="table">Table</option>
@@ -512,7 +505,7 @@ const POSPage = () => {
                   placeholder="Table number"
                   value={tableNumber}
                   onChange={(e) => setTableNumber(e.target.value)}
-                  className="flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               ) : (
                 <input
@@ -520,7 +513,7 @@ const POSPage = () => {
                   placeholder="Customer name (optional)"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className="flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               )}
             </div>

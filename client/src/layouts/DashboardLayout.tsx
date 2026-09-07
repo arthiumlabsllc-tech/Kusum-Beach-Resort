@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FiHome, FiPackage, FiShoppingCart, FiList, FiBarChart2, FiUsers, FiLogOut, FiMenu, FiX, FiBell, FiSettings } from 'react-icons/fi';
 import { useState } from 'react';
@@ -17,6 +17,7 @@ const navigation = [
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
@@ -124,7 +125,7 @@ const DashboardLayout = () => {
             <FiMenu size={24} />
           </button>
           <h1 className="text-lg font-semibold text-gray-900">
-            {navigation.find((n) => n.to === window.location.pathname)?.name || 'Dashboard'}
+            {navigation.find((n) => n.to === location.pathname)?.name || 'Dashboard'}
           </h1>
         </header>
 

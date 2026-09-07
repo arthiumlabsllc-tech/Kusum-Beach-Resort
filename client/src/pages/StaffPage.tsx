@@ -14,7 +14,7 @@ const StaffPage = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get('/auth/users');
+      const response = await api.get('/users');
       setUsers(response.data);
     } catch (error) {
       toast.error('Failed to load staff');
@@ -87,7 +87,11 @@ const StaffPage = () => {
                     {user.lastLogin ? format(new Date(user.lastLogin), 'MMM d, HH:mm') : 'Never'}
                   </td>
                   <td className="px-4 py-3">
-                    <span className="badge-success">Active</span>
+                    {user.isActive === false ? (
+                      <span className="badge-danger">Inactive</span>
+                    ) : (
+                      <span className="badge-success">Active</span>
+                    )}
                   </td>
                 </tr>
               ))}

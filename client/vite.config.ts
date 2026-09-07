@@ -7,12 +7,12 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'favicon.png', 'logo.png', 'apple-touch-icon.png', 'mask-icon.svg'],
+      includeAssets: ['favicon.png', 'favicon.svg', 'logo.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'Kusum Beach Resort',
         short_name: 'Kusum Beach',
         description: 'Beach Resort Management Platform',
-        theme_color: '#0891b2',
+        theme_color: '#ea580c',
         background_color: '#ffffff',
         display: 'standalone',
         scope: '/',

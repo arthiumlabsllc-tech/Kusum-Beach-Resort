@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FiCopy, FiCheck, FiRefreshCw, FiExternalLink, FiClock } from 'react-icons/fi';
+import { FiCopy, FiCheck, FiRefreshCw, FiClock } from 'react-icons/fi';
 import api from '../lib/api';
 import { toast } from 'react-toastify';
 
