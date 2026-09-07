@@ -31,6 +31,7 @@ const POSPage = () => {
   };
 
   const addToCart = (product: Product) => {
+    const price = Number(product.sellingPrice);
     const existing = cart.find((item) => item.productId === product.id);
 
     if (existing) {
@@ -41,7 +42,7 @@ const POSPage = () => {
       setCart(
         cart.map((item) =>
           item.productId === product.id
-            ? { ...item, quantity: item.quantity + 1, total: (item.quantity + 1) * product.sellingPrice }
+            ? { ...item, quantity: item.quantity + 1, total: (item.quantity + 1) * price }
             : item
         )
       );
@@ -52,8 +53,8 @@ const POSPage = () => {
           productId: product.id,
           product,
           quantity: 1,
-          unitPrice: product.sellingPrice,
-          total: product.sellingPrice,
+          unitPrice: price,
+          total: price,
         },
       ]);
     }
@@ -146,7 +147,7 @@ const POSPage = () => {
               >
                 <p className="font-medium text-gray-900 text-sm truncate">{product.name}</p>
                 <p className="text-xs text-gray-500">{product.unit}</p>
-                <p className="text-primary-600 font-bold mt-1">GHS {product.sellingPrice.toFixed(2)}</p>
+                <p className="text-primary-600 font-bold mt-1">GHS {Number(product.sellingPrice).toFixed(2)}</p>
                 <p className="text-xs text-gray-400">Stock: {product.stockQuantity}</p>
               </button>
             ))}
@@ -176,7 +177,7 @@ const POSPage = () => {
                 <div key={item.productId} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{item.product?.name}</p>
-                    <p className="text-xs text-gray-500">GHS {item.unitPrice.toFixed(2)} each</p>
+                    <p className="text-xs text-gray-500">GHS {Number(item.unitPrice).toFixed(2)} each</p>
                   </div>
                   <div className="flex items-center gap-1">
                     <button

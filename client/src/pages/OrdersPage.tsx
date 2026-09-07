@@ -103,7 +103,7 @@ const OrdersPage = () => {
                     <div className="text-xs text-gray-500 capitalize">{order.customerType}</div>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600">{order.items.length} items</td>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">GHS {order.total.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900">GHS {Number(order.total).toFixed(2)}</td>
                   <td className="px-4 py-3">
                     <span className={getPaymentStatusColor(order.paymentStatus)}>{order.paymentStatus}</span>
                   </td>
@@ -144,7 +144,7 @@ const OrdersPage = () => {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div><span className="text-gray-500">Customer:</span> {selectedOrder.customerName || 'Walk-in'}</div>
                 <div><span className="text-gray-500">Type:</span> {selectedOrder.customerType}</div>
-                <div><span className="text-gray-500">Total:</span> GHS {selectedOrder.total.toFixed(2)}</div>
+                <div><span className="text-gray-500">Total:</span> GHS {Number(selectedOrder.total).toFixed(2)}</div>
                 <div><span className="text-gray-500">Status:</span> {selectedOrder.orderStatus}</div>
               </div>
               <div className="border-t pt-4">
@@ -152,7 +152,7 @@ const OrdersPage = () => {
                 {selectedOrder.items.map((item) => (
                   <div key={item.productId} className="flex justify-between text-sm py-1">
                     <span>{item.product?.name} x{item.quantity}</span>
-                    <span>GHS {item.total.toFixed(2)}</span>
+                    <span>GHS {Number(item.total).toFixed(2)}</span>
                   </div>
                 ))}
               </div>

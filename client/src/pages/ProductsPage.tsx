@@ -147,10 +147,10 @@ const ProductsPage = () => {
                   </td>
                   <td className="px-4 py-3">
                     <div className="text-sm font-medium text-gray-900">
-                      GHS {product.sellingPrice.toFixed(2)}
+                      GHS {Number(product.sellingPrice).toFixed(2)}
                     </div>
                     <div className="text-xs text-gray-500">
-                      Cost: GHS {product.buyingPrice.toFixed(2)}
+                      Cost: GHS {Number(product.buyingPrice).toFixed(2)}
                     </div>
                   </td>
                   <td className="px-4 py-3">{getStatusBadge(product)}</td>

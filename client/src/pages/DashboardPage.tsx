@@ -10,7 +10,7 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await api.get('/reports/dashboard');
+        const response = await api.get('/analytics/dashboard');
         setStats(response.data);
       } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
@@ -57,7 +57,7 @@ const DashboardPage = () => {
     },
     {
       title: "Today's Revenue",
-      value: `GHS ${(stats?.revenue.today || 0).toFixed(2)}`,
+      value: `GHS ${Number(stats?.revenue.today || 0).toFixed(2)}`,
       icon: FiDollarSign,
       color: 'bg-primary-500',
     },
@@ -108,7 +108,7 @@ const DashboardPage = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Total Revenue</h3>
           <div className="text-center py-8">
             <p className="text-4xl font-bold text-primary-600">
-              GHS {(stats?.revenue.total || 0).toFixed(2)}
+              GHS ${Number(stats?.revenue.total || 0).toFixed(2)}
             </p>
             <p className="text-gray-500 mt-2">All-time revenue</p>
             <p className="text-sm text-gray-400 mt-1">
