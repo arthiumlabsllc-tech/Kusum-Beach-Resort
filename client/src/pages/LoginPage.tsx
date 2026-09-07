@@ -42,7 +42,7 @@ const LoginPage = () => {
         <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl border border-white/30 p-8">
           {/* Logo & Title */}
           <div className="text-center mb-8">
-            <img src="/logo.png" alt="Kusum Beach" className="w-20 h-20 mx-auto rounded-2xl shadow-lg mb-4 object-contain" />
+            <img src="/logo.png" alt="Kusum Beach" className="w-32 h-32 mx-auto rounded-2xl shadow-lg mb-4 object-contain" />
             <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Kusum Beach</h1>
             <p className="text-sm text-gray-500 mt-1">Resort Management Platform</p>
           </div>
