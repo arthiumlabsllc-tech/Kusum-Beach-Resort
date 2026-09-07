@@ -173,15 +173,15 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete step-by-step instructions.
 |---------|---------|----------|
 | **Vercel** | Frontend PWA | 100GB bandwidth |
 | **Render** | Backend API | 750 hours/month |
-| **Neon** | PostgreSQL | 0.5GB storage |
+| **Supabase** | PostgreSQL | 500MB storage |
 
 **Total Monthly Cost: $0**
 
 ```bash
 # 1. Push to GitHub (already done)
-# 2. Deploy backend to Render (connect repo, set root: server)
-# 3. Deploy frontend to Vercel (connect repo, set root: client)
-# 4. Set up Neon PostgreSQL (free)
+# 2. Create Supabase project (free PostgreSQL)
+# 3. Deploy backend to Render (connect repo, set root: server)
+# 4. Deploy frontend to Vercel (connect repo, set root: client)
 # 5. Configure environment variables
 ```
 

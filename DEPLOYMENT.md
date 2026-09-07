@@ -4,32 +4,32 @@
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   Vercel        │     │   Render        │     │   Neon /        │
-│   (Frontend)    │────▶│   (Backend API) │────▶│   Supabase      │
-│   FREE          │     │   FREE          │     │   (PostgreSQL)  │
-│                 │     │                 │     │   FREE          │
+│   Vercel        │     │   Render        │     │   Supabase      │
+│   (Frontend)    │────▶│   (Backend API) │────▶│   (PostgreSQL)  │
+│   FREE          │     │   FREE          │     │   FREE          │
+│                 │     │                 │     │                 │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
-   kusum-beach-            kusum-beach-api-         neon.tech or
-   vercel.app              onrender.com             supabase.com
+   kusum-beach-            kusum-beach-api-         supabase.com
+   vercel.app              onrender.com
 ```
 
-## Step 1: Set Up Free PostgreSQL Database
+## Step 1: Set Up Supabase Database (Free)
 
-### Option A: Neon.tech (Recommended - Best Free Tier)
-1. Go to https://neon.tech and sign up (free)
-2. Create a new project: `kusum-beach`
-3. Copy the connection string (looks like):
-   ```
-   postgresql://username:password@ep-xxx.us-east-2.aws.neon.tech/db?sslmode=require
-   ```
-4. Save this as your `DATABASE_URL`
-
-### Option B: Supabase (Alternative)
 1. Go to https://supabase.com and sign up (free)
-2. Create a new project: `kusum-beach`
-3. Go to Settings → Database
-4. Copy the connection string (URI format)
-5. Save this as your `DATABASE_URL`
+2. Click "New Project"
+3. Configure:
+   - **Name**: `kusum-beach`
+   - **Database Password**: (save this somewhere safe)
+   - **Region**: US East (closest to Ghana)
+4. Wait for project to initialize (~2 minutes)
+5. Go to **Settings** → **Database**
+6. Under "Connection string" → Select **URI** tab
+7. Copy the connection string (looks like):
+   ```
+   postgresql://postgres:[PASSWORD]@db.xxxx.supabase.co:5432/postgres
+   ```
+8. Replace `[PASSWORD]` with your actual database password
+9. Save this as your `DATABASE_URL`
 
 ## Step 2: Deploy Backend to Render
 
@@ -137,10 +137,10 @@ After Vercel deployment:
 - Serverless function execution limits
 - More than enough for MVP demo
 
-### Neon (Free)
-- 0.5 GB storage
-- 190 compute hours/month
-- More than enough for demo
+### Supabase (Free)
+- 500 MB database storage
+- Unlimited API requests
+- More than enough for MVP demo
 
 ## Keep Render Alive (Optional)
 
@@ -180,16 +180,16 @@ If you have a domain (e.g., `pos.kusumbeach.com`):
 |---------|-----------|-----------|------|
 | Vercel | 100GB bandwidth | ~1GB | $0 |
 | Render | 750 hours/month | ~100 hours | $0 |
-| Neon | 0.5GB storage | ~50MB | $0 |
+| Supabase | 500MB storage | ~50MB | $0 |
 | **Total** | | | **$0/month** |
 
 ## Production Upgrade Path
 
 When ready to go live:
 1. **Render Starter**: $7/month (no cold starts)
-2. **Neon Launch**: $15/month (more storage/compute)
+2. **Supabase Pro**: $25/month (8GB storage, backups)
 3. **Vercel Pro**: $20/month (more bandwidth)
-4. **Total**: ~$42/month for production
+4. **Total**: ~$52/month for production
 
 ---
 
