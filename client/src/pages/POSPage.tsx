@@ -306,7 +306,7 @@ const POSPage = () => {
         </div>
 
         {/* Cart Panel */}
-        <div className="w-full lg:w-96 flex flex-col">
+        <div className="w-full lg:w-[420px] flex flex-col">
           <div className="card flex-1 flex flex-col !p-0 overflow-hidden">
             {/* Cart Header */}
             <div className="flex items-center justify-between p-4 border-b bg-gray-50">
@@ -324,7 +324,7 @@ const POSPage = () => {
             </div>
 
             {/* Cart Items */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
               {cart.length === 0 ? (
                 <div className="text-center py-12 text-gray-400">
                   <FiShoppingCart className="mx-auto h-12 w-12 mb-3 text-gray-300" />
@@ -333,12 +333,12 @@ const POSPage = () => {
                 </div>
               ) : (
                 cart.map((item) => (
-                  <div key={item.productId} className="flex items-center justify-between p-2.5 bg-blue-50 rounded-lg transition-all">
-                    <div className="flex-1 min-w-0">
+                  <div key={item.productId} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg transition-all">
+                    <div className="flex-1 min-w-0 mr-2">
                       <p className="text-sm font-medium text-gray-900 truncate">{item.product?.name}</p>
                       <p className="text-xs text-gray-500">GHS {Number(item.unitPrice).toFixed(2)} each</p>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       <button onClick={() => updateQuantity(item.productId, -1)} className="p-1.5 hover:bg-white rounded-md transition-colors">
                         <FiMinus size={12} />
                       </button>
@@ -356,7 +356,7 @@ const POSPage = () => {
             </div>
 
             {/* Checkout Section */}
-            <div className="border-t p-4 space-y-3 bg-gray-50">
+            <div className="border-t p-5 space-y-3 bg-gray-50">
               {/* Customer Details */}
               <div className="grid grid-cols-2 gap-2">
                 <select
@@ -377,7 +377,7 @@ const POSPage = () => {
               </div>
 
               {/* Payment Method Buttons */}
-              <div className="grid grid-cols-5 gap-1.5">
+              <div className="grid grid-cols-5 gap-2">
                 {paymentButtons.map((btn) => (
                   <button
                     key={btn.value}
