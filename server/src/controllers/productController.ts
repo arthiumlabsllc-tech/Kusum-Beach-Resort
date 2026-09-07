@@ -287,11 +287,44 @@ export const getInventoryAlerts = async (_req: Request, res: Response): Promise<
       orderBy: { name: 'asc' },
     });
 
-    const enriched = products.map(enrichProduct);
+    const enriched = products.map((p) => {
+      const expiryDate = p.expiryDate ? new Date(p.expiryDate) : null;
+      let daysUntilExpiry: number | null = null;
+      if (expiryDate) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const expiry = new Date(expiryDate);
+        expiry.setHours(0, 0, 0, 0);
+        daysUntilExpiry = Math.floor((expiry.getTime() - today.getTime()) / 86_400_000);
+      }
 
-    const lowStockProducts = enriched.filter((p: any) => p.stockLevel === 'low');
-    const outOfStockProducts = enriched.filter((p: any) => p.stockLevel === 'out');
-    const expiringProducts = enriched.filter((p: any) => p.expiryState === 'soon' || p.expiryState === 'expired');
+      return {
+        id: p.id,
+        name: p.name,
+        categoryId: p.categoryId,
+        category: p.category,
+        unit: p.unit,
+        stockQuantity: p.stockQuantity,
+        reorderLevel: p.reorderLevel,
+        reorderQuantity: p.reorderQuantity,
+        buyingPrice: Number(p.buyingPrice),
+        sellingPrice: Number(p.sellingPrice),
+        supplier: p.supplier,
+        expiryDate: p.expiryDate ? p.expiryDate.toISOString() : null,
+        imageUrl: p.imageUrl,
+        barcode: p.barcode,
+        status: p.status,
+        createdAt: p.createdAt.toISOString(),
+        updatedAt: p.updatedAt.toISOString(),
+        stockLevel: stockLevel(p.stockQuantity, p.reorderLevel),
+        expiryState: expiryState(p.expiryDate),
+        daysUntilExpiry,
+      };
+    });
+
+    const lowStockProducts = enriched.filter((p) => p.stockLevel === 'low');
+    const outOfStockProducts = enriched.filter((p) => p.stockLevel === 'out');
+    const expiringProducts = enriched.filter((p) => p.expiryState === 'soon' || p.expiryState === 'expired');
 
     res.json({
       products: enriched,
@@ -299,14 +332,15 @@ export const getInventoryAlerts = async (_req: Request, res: Response): Promise<
         total: enriched.length,
         lowStock: lowStockProducts.length,
         outOfStock: outOfStockProducts.length,
-        expiringSoon: enriched.filter((p: any) => p.expiryState === 'soon').length,
-        expired: enriched.filter((p: any) => p.expiryState === 'expired').length,
+        expiringSoon: enriched.filter((p) => p.expiryState === 'soon').length,
+        expired: enriched.filter((p) => p.expiryState === 'expired').length,
       },
       lowStockProducts,
       outOfStockProducts,
       expiringProducts,
     });
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+  } catch (error: any) {
+    console.error('Inventory alerts error:', error);
+    res.status(500).json({ error: error.message || 'Internal server error' });
   }
 };
