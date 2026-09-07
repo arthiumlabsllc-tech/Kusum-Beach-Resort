@@ -9,6 +9,7 @@ import {
   getLowStockProducts,
   getCategories,
   getStockMovements,
+  getInventoryAlerts,
 } from '../controllers/productController';
 import { authenticate, authorize } from '../middleware/auth';
 import { validate } from '../middleware/validate';
@@ -24,6 +25,7 @@ router.get('/categories', getCategories);
 
 // Products
 router.get('/', getAllProducts);
+router.get('/inventory-alerts', getInventoryAlerts);
 router.get('/low-stock', getLowStockProducts);
 router.get('/movements', getStockMovements);
 router.get('/:id', getProductById);

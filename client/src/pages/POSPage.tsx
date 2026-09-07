@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import api from '../lib/api';
 import { Product, OrderItem, Category } from '../types';
 import {
-  FiSearch, FiShoppingCart,
+  FiSearch, FiShoppingCart, FiAlertTriangle, FiClock,
 } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import PaymentModal from '../components/PaymentModal';
@@ -32,6 +32,8 @@ const POSPage = () => {
   const [receipt, setReceipt] = useState<any>(null);
   const [paystackOrderId, setPaystackOrderId] = useState<number | null>(null);
   const [paystackMethod, setPaystackMethod] = useState('momo_mtn');
+  const [inventoryAlerts, setInventoryAlerts] = useState<{ lowStock: number; outOfStock: number; expiringSoon: number; expired: number } | null>(null);
+  const [showAlerts, setShowAlerts] = useState(true);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   // Paystack config — uses test key by default
@@ -40,6 +42,13 @@ const POSPage = () => {
   // Fetch categories
   useEffect(() => {
     api.get('/categories').then((res) => setCategories(res.data)).catch(() => {});
+  }, []);
+
+  // Fetch inventory alerts
+  useEffect(() => {
+    api.get('/products/inventory-alerts').then((res) => {
+      setInventoryAlerts(res.data.summary);
+    }).catch(() => {});
   }, []);
 
   // Fetch products
@@ -320,6 +329,35 @@ const POSPage = () => {
             In stock only
           </label>
         </div>
+
+        {/* Inventory Alerts Banner */}
+        {showAlerts && inventoryAlerts && (inventoryAlerts.lowStock > 0 || inventoryAlerts.outOfStock > 0 || inventoryAlerts.expiringSoon > 0 || inventoryAlerts.expired > 0) && (
+          <div className="mx-3 mt-3 sm:mx-4 sm:mt-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+            <FiAlertTriangle className="text-amber-600 mt-0.5 shrink-0" size={14} />
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
+                {inventoryAlerts.outOfStock > 0 && (
+                  <span className="font-semibold text-red-700">{inventoryAlerts.outOfStock} out of stock</span>
+                )}
+                {inventoryAlerts.lowStock > 0 && (
+                  <span className="font-medium text-amber-700">{inventoryAlerts.lowStock} low stock</span>
+                )}
+                {inventoryAlerts.expired > 0 && (
+                  <span className="font-semibold text-red-700">{inventoryAlerts.expired} expired</span>
+                )}
+                {inventoryAlerts.expiringSoon > 0 && (
+                  <span className="font-medium text-orange-600">{inventoryAlerts.expiringSoon} expiring soon</span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => setShowAlerts(false)}
+              className="shrink-0 text-amber-400 hover:text-amber-600 text-xs font-medium"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* Product Tiles */}
         <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">
