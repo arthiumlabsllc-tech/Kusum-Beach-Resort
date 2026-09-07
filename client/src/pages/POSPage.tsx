@@ -306,7 +306,7 @@ const POSPage = () => {
         </div>
 
         {/* Cart Panel */}
-        <div className="w-full lg:w-[420px] flex flex-col">
+        <div className="w-full lg:w-[440px] xl:w-[480px] flex-shrink-0 flex flex-col">
           <div className="card flex-1 flex flex-col !p-0 overflow-hidden">
             {/* Cart Header */}
             <div className="flex items-center justify-between p-4 border-b bg-gray-50">
@@ -324,7 +324,7 @@ const POSPage = () => {
             </div>
 
             {/* Cart Items */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {cart.length === 0 ? (
                 <div className="text-center py-12 text-gray-400">
                   <FiShoppingCart className="mx-auto h-12 w-12 mb-3 text-gray-300" />
@@ -334,20 +334,22 @@ const POSPage = () => {
               ) : (
                 cart.map((item) => (
                   <div key={item.productId} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg transition-all">
-                    <div className="flex-1 min-w-0 mr-2">
+                    <div className="flex-1 min-w-0 mr-3">
                       <p className="text-sm font-medium text-gray-900 truncate">{item.product?.name}</p>
-                      <p className="text-xs text-gray-500">GHS {Number(item.unitPrice).toFixed(2)} each</p>
+                      <p className="text-xs text-gray-500 mt-0.5">GHS {Number(item.unitPrice).toFixed(2)} × {item.quantity} = <span className="font-semibold text-gray-700">GHS {Number(item.total).toFixed(2)}</span></p>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <button onClick={() => updateQuantity(item.productId, -1)} className="p-1.5 hover:bg-white rounded-md transition-colors">
-                        <FiMinus size={12} />
-                      </button>
-                      <span className="w-8 text-center text-sm font-bold">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.productId, 1)} className="p-1.5 hover:bg-white rounded-md transition-colors">
-                        <FiPlus size={12} />
-                      </button>
-                      <button onClick={() => removeFromCart(item.productId)} className="p-1.5 text-red-400 hover:bg-red-50 rounded-md ml-1 transition-colors">
-                        <FiTrash2 size={12} />
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center bg-white rounded-lg border border-gray-200">
+                        <button onClick={() => updateQuantity(item.productId, -1)} className="p-1.5 hover:bg-gray-100 rounded-l-lg transition-colors">
+                          <FiMinus size={13} />
+                        </button>
+                        <span className="w-8 text-center text-sm font-bold select-none">{item.quantity}</span>
+                        <button onClick={() => updateQuantity(item.productId, 1)} className="p-1.5 hover:bg-gray-100 rounded-r-lg transition-colors">
+                          <FiPlus size={13} />
+                        </button>
+                      </div>
+                      <button onClick={() => removeFromCart(item.productId)} className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors">
+                        <FiTrash2 size={14} />
                       </button>
                     </div>
                   </div>
@@ -356,47 +358,67 @@ const POSPage = () => {
             </div>
 
             {/* Checkout Section */}
-            <div className="border-t p-5 space-y-3 bg-gray-50">
+            <div className="border-t p-4 space-y-3 bg-gray-50">
               {/* Customer Details */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex gap-2">
                 <select
                   value={customerType}
                   onChange={(e) => setCustomerType(e.target.value as any)}
-                  className="input-field text-sm !py-1.5"
+                  className="input-field text-sm !py-2 w-28 flex-shrink-0"
                 >
                   <option value="walkin">Walk-in</option>
                   <option value="table">Table</option>
                   <option value="takeaway">Takeaway</option>
                 </select>
                 {customerType === 'table' && (
-                  <input type="text" placeholder="Table #" value={tableNumber} onChange={(e) => setTableNumber(e.target.value)} className="input-field text-sm !py-1.5" />
+                  <input type="text" placeholder="Table number" value={tableNumber} onChange={(e) => setTableNumber(e.target.value)} className="input-field text-sm !py-2 flex-1" />
                 )}
                 {customerType !== 'table' && (
-                  <input type="text" placeholder="Customer name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="input-field text-sm !py-1.5" />
+                  <input type="text" placeholder="Customer name (optional)" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="input-field text-sm !py-2 flex-1" />
                 )}
               </div>
 
               {/* Payment Method Buttons */}
-              <div className="grid grid-cols-5 gap-2">
-                {paymentButtons.map((btn) => (
+              <div className="grid grid-cols-3 gap-2">
+                {paymentButtons.slice(0, 3).map((btn) => (
                   <button
                     key={btn.value}
                     onClick={() => setPaymentMethod(btn.value)}
-                    className={`py-2 px-1 rounded-lg text-xs font-medium transition-all text-center ${
+                    className={`py-2.5 px-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
                       paymentMethod === btn.value
                         ? `${btn.color} text-white shadow-sm ring-2 ring-offset-1 ring-blue-300`
                         : 'bg-white text-gray-600 border hover:bg-gray-50'
                     }`}
                   >
-                    <span className="block text-base">{btn.icon}</span>
-                    <span className="block mt-0.5">{btn.label}</span>
+                    <span className="text-base">{btn.icon}</span>
+                    <span>{btn.label}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {paymentButtons.slice(3).map((btn) => (
+                  <button
+                    key={btn.value}
+                    onClick={() => setPaymentMethod(btn.value)}
+                    className={`py-2.5 px-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                      paymentMethod === btn.value
+                        ? `${btn.color} text-white shadow-sm ring-2 ring-offset-1 ring-blue-300`
+                        : 'bg-white text-gray-600 border hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="text-base">{btn.icon}</span>
+                    <span>{btn.label}</span>
                   </button>
                 ))}
               </div>
 
               {/* Totals */}
-              <div className="border-t pt-3">
-                <div className="flex justify-between text-lg font-bold text-gray-900">
+              <div className="border-t pt-3 space-y-1">
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>Subtotal</span>
+                  <span>GHS {subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-xl font-bold text-gray-900">
                   <span>Total</span>
                   <span className="text-blue-600">GHS {total.toFixed(2)}</span>
                 </div>
@@ -405,7 +427,7 @@ const POSPage = () => {
               <button
                 onClick={processSale}
                 disabled={cart.length === 0 || processing}
-                className="btn-primary w-full py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+                className="btn-primary w-full py-3.5 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98] rounded-xl"
               >
                 {processing ? (
                   <span className="flex items-center justify-center gap-2">
