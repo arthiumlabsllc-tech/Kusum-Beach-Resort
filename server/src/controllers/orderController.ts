@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
-import { Prisma } from '@prisma/client';
+import { Prisma, Product, PrismaClient } from '@prisma/client';
+
+type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
 
 // Generate unique order number
 const generateOrderNumber = (): string => {
@@ -31,7 +33,8 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<void
       where: { id: { in: productIds } },
     });
 
-    const productMap = new Map(products.map((p) => [p.id, p]));
+    type ProductType = typeof products[number];
+    const productMap = new Map<number, ProductType>(products.map((p: Product) => [p.id, p]));
 
     // Validate stock availability and calculate totals
     let subtotal = 0;
@@ -86,7 +89,7 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<void
     const total = taxableAmount + taxAmount;
 
     // Create order in transaction
-    const order = await prisma.$transaction(async (tx) => {
+    const order = await prisma.$transaction(async (tx: TransactionClient) => {
       // Create order
       const newOrder = await tx.order.create({
         data: {
@@ -274,7 +277,7 @@ export const cancelOrder = async (req: AuthRequest, res: Response): Promise<void
     }
 
     // Restore stock and create order in transaction
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: TransactionClient) => {
       await tx.order.update({
         where: { id: order.id },
         data: {
