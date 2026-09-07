@@ -67,7 +67,7 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<void
       orderItems.push({
         productId: item.productId,
         quantity: item.quantity,
-        unitPrice: product.sellingPrice,
+        unitPrice: product.sellingPrice.toNumber(),
         total,
         notes: item.notes,
       });
