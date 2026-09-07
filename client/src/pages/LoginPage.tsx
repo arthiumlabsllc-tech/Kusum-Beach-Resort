@@ -40,11 +40,10 @@ const LoginPage = () => {
       {/* Login Card */}
       <div className="relative z-10 w-full max-w-md mx-4 animate-fade-in-up">
         <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl border border-white/30 p-8">
-          {/* Logo & Title */}
+          {/* Logo */}
           <div className="text-center mb-8">
-            <img src="/logo.png" alt="Kusum Beach" className="w-32 h-32 mx-auto rounded-2xl shadow-lg mb-4 object-contain" />
-            <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Kusum Beach</h1>
-            <p className="text-sm text-gray-500 mt-1">Resort Management Platform</p>
+            <img src="/logo.png" alt="Kusum Beach" className="w-32 h-32 mx-auto rounded-2xl shadow-lg mb-3 object-contain" />
+            <p className="text-sm text-gray-500">Resort Management Platform</p>
           </div>
 
           {/* Login Form */}
