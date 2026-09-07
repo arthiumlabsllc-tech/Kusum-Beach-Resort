@@ -98,9 +98,15 @@ const LoginPage = () => {
           </form>
 
           {/* Footer */}
-          <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+          <div className="mt-8 pt-6 border-t border-gray-100 text-center space-y-1">
             <p className="text-xs text-gray-400">Kokrobite, Accra, Ghana</p>
-            <p className="text-[10px] text-gray-300 mt-1">Kusum Beach Management Platform v1.0</p>
+            <p className="text-[10px] text-gray-300">Kusum Beach Management Platform v1.0</p>
+            <p className="text-[10px] text-gray-400 mt-2">
+              Powered by{' '}
+              <a href="https://arthiumlabs.com" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-600 font-semibold transition-colors">
+                Arthium Labs
+              </a>
+            </p>
           </div>
         </div>
       </div>

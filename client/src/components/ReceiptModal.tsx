@@ -35,7 +35,7 @@ const ReceiptModal = ({ order, onClose }: ReceiptModalProps) => {
 
   const handleWhatsApp = () => {
     const itemsList = order.items.map((i) => `  ${i.name} x${i.quantity} - GHS ${Number(i.total).toFixed(2)}`).join('\n');
-    const message = `*Kusum Beach Resort*\n---------------------\nOrder: ${order.orderNumber}\nDate: ${new Date(order.createdAt).toLocaleString()}\nStaff: ${order.staffName}\n---------------------\n${itemsList}\n---------------------\nSubtotal: GHS ${Number(order.subtotal).toFixed(2)}\n${order.discountAmount > 0 ? `Discount: -GHS ${Number(order.discountAmount).toFixed(2)}\n` : ''}${order.taxAmount > 0 ? `Tax: GHS ${Number(order.taxAmount).toFixed(2)}\n` : ''}*Total: GHS ${Number(order.total).toFixed(2)}*\nPayment: ${paymentLabels[order.paymentMethod] || order.paymentMethod}\n---------------------\nThank you for visiting Kusum Beach!`;
+    const message = `*Kusum Beach Resort*\n---------------------\nOrder: ${order.orderNumber}\nDate: ${new Date(order.createdAt).toLocaleString()}\nStaff: ${order.staffName}\n---------------------\n${itemsList}\n---------------------\nSubtotal: GHS ${Number(order.subtotal).toFixed(2)}\n${order.discountAmount > 0 ? `Discount: -GHS ${Number(order.discountAmount).toFixed(2)}\n` : ''}${order.taxAmount > 0 ? `Tax: GHS ${Number(order.taxAmount).toFixed(2)}\n` : ''}*Total: GHS ${Number(order.total).toFixed(2)}*\nPayment: ${paymentLabels[order.paymentMethod] || order.paymentMethod}\n---------------------\nThank you for visiting Kusum Beach!\n\nPowered by Arthium Labs`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -105,6 +105,9 @@ const ReceiptModal = ({ order, onClose }: ReceiptModalProps) => {
 
           <div className="text-center mt-4 text-xs text-gray-400">
             Thank you for visiting Kusum Beach!
+          </div>
+          <div className="text-center mt-2 text-[10px] text-gray-300">
+            Powered by Arthium Labs
           </div>
         </div>
 
