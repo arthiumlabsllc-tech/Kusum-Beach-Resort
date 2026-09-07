@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
+import { Prisma } from '@prisma/client';
 
 // Generate unique order number
 const generateOrderNumber = (): string => {
@@ -34,7 +35,13 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<void
 
     // Validate stock availability and calculate totals
     let subtotal = 0;
-    const orderItems = [];
+    const orderItems: Array<{
+      productId: number;
+      quantity: number;
+      unitPrice: number;
+      total: number;
+      notes?: string;
+    }> = [];
 
     for (const item of items) {
       const product = productMap.get(item.productId);

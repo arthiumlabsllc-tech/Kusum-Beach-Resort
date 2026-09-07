@@ -270,7 +270,7 @@ export const getProfitability = async (req: Request, res: Response): Promise<voi
 
     const orderItems = await prisma.orderItem.findMany({
       where: { order: where },
-      include: { product: true },
+      include: { product: { include: { category: true } } },
     });
 
     let totalRevenue = 0;
