@@ -5,19 +5,21 @@ import prisma from './lib/prisma';
 
 async function main() {
   try {
+    console.log('Starting Kusum Beach API server...');
+    console.log('DATABASE_URL:', config.databaseUrl ? config.databaseUrl.substring(0, 30) + '...' : 'NOT SET');
+    
     // Test database connection
     await prisma.$connect();
-    logger.info('✅ Database connected successfully');
+    console.log('Database connected successfully');
 
     // Start server
     app.listen(config.port, () => {
-      logger.info(`🚀 Kusum Beach API server running on port ${config.port}`);
-      logger.info(`📍 Environment: ${config.nodeEnv}`);
-      logger.info(`🌐 API prefix: ${config.apiPrefix}`);
-      logger.info(`🏥 Health check: http://localhost:${config.port}/health`);
+      console.log(`Kusum Beach API server running on port ${config.port}`);
+      console.log(`Environment: ${config.nodeEnv}`);
+      console.log(`API prefix: ${config.apiPrefix}`);
     });
   } catch (error) {
-    logger.error('Failed to start server:', error);
+    console.error('FAILED TO START SERVER:', error);
     process.exit(1);
   }
 }
