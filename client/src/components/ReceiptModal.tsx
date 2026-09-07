@@ -54,6 +54,7 @@ const ReceiptModal = ({ order, onClose }: ReceiptModalProps) => {
         {/* Receipt */}
         <div id="receipt" className="p-6">
           <div className="text-center mb-4">
+            <img src="/logo.png" alt="Kusum Beach" className="w-14 h-14 mx-auto rounded-xl object-contain mb-2" />
             <h4 className="text-lg font-bold text-gray-900">Kusum Beach Resort</h4>
             <p className="text-xs text-gray-500">Kokrobite, Accra, Ghana</p>
             <p className="text-xs text-gray-400 mt-1">

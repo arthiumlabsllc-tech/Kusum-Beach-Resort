@@ -43,8 +43,9 @@ const DashboardLayout = () => {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
-            <div className="flex items-center">
-              <span className="text-xl font-bold text-primary-600">Kusum Beach</span>
+            <div className="flex items-center gap-2">
+              <img src="/logo.png" alt="Kusum Beach" className="h-9 w-9 rounded-lg object-contain" />
+              <span className="text-lg font-bold text-primary-600 hidden sm:inline">Kusum Beach</span>
             </div>
             <button
               className="lg:hidden text-gray-500 hover:text-gray-700"
