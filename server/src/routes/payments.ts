@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { recordCashPayment, initiateMomoPayment, momoCallback, initiateCryptoPayment, cryptoCallback, getPaymentById, getAllPayments, getReconciliation, processRefund, paystackInitialize, paystackVerify, paystackWebhook } from '../controllers/paymentController';
+import { recordCashPayment, initiateMomoPayment, momoCallback, initiateCryptoPayment, cryptoCallback, getPaymentById, getAllPayments, getReconciliation, processRefund, paystackInitialize, paystackVerify, paystackWebhook, bconInitialize, bconCallback, bconCheckStatus } from '../controllers/paymentController';
 import { authenticate, authorize } from '../middleware/auth';
 
 const router = Router();
@@ -8,6 +8,7 @@ const router = Router();
 router.post('/momo/callback', momoCallback);
 router.post('/crypto/callback', cryptoCallback);
 router.post('/paystack/webhook', paystackWebhook);
+router.post('/crypto/bcon/callback', bconCallback);
 
 // All other payment routes require authentication
 router.use(authenticate);
@@ -23,5 +24,9 @@ router.post('/refund', authorize('owner', 'manager'), processRefund);
 // Paystack routes
 router.post('/paystack/initialize', paystackInitialize);
 router.post('/paystack/verify', paystackVerify);
+
+// BCon Global crypto routes
+router.post('/crypto/bcon/initialize', bconInitialize);
+router.get('/crypto/bcon/status/:externalId', bconCheckStatus);
 
 export default router;

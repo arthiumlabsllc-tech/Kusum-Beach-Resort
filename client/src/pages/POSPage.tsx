@@ -7,6 +7,7 @@ import {
 import { toast } from 'react-toastify';
 import PaymentModal from '../components/PaymentModal';
 import ReceiptModal from '../components/ReceiptModal';
+import CryptoPayment from '../components/CryptoPayment';
 import { usePaystack } from '../hooks/usePaystack';
 
 const categoryIcons: Record<string, string> = {
@@ -206,6 +207,32 @@ const POSPage = () => {
   };
 
   const [paystackOrderData, setPaystackOrderData] = useState<any>(null);
+  const [cryptoOpen, setCryptoOpen] = useState(false);
+  const [cryptoOrderId, setCryptoOrderId] = useState<number | null>(null);
+  const [cryptoMethod, setCryptoMethod] = useState('crypto_stablecoin');
+
+  /** Handle crypto payment selection — creates order, opens crypto modal */
+  const handleCryptoPay = async () => {
+    setProcessing(true);
+    try {
+      const res = await api.post('/orders', {
+        items: cart.map((item) => ({ productId: item.id, quantity: item.quantity })),
+        paymentMethod: 'crypto_stablecoin',
+        paymentStatus: 'pending',
+        customerName: customerName || undefined,
+        tableNumber: tableNumber || undefined,
+      });
+      const order = res.data.order;
+      setCryptoOrderId(order.id);
+      setCryptoMethod('crypto_stablecoin');
+      setPaymentOpen(false);
+      setCryptoOpen(true);
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to create order');
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   /** Verify Paystack payment after user completes it */
   const handleVerifyPaystack = async () => {
@@ -494,7 +521,35 @@ const POSPage = () => {
         paystackEnabled={true}
         onPaystackPay={handlePaystackPay}
         paystackLoading={processing}
+        onCryptoPay={handleCryptoPay}
       />
+
+      {/* ===== Crypto Payment Modal ===== */}
+      {cryptoOpen && cryptoOrderId && (
+        <CryptoPayment
+          orderId={cryptoOrderId}
+          total={total}
+          onSuccess={() => {
+            setCryptoOpen(false);
+            setPaymentOpen(false);
+            // Fetch the order and show receipt
+            api.get(`/orders/${cryptoOrderId}`).then((res) => {
+              const order = res.data;
+              showReceipt(order, cryptoMethod);
+              fetchProducts();
+              setCart([]);
+              setCustomerName('');
+              setTableNumber('');
+              toast.success('Crypto payment confirmed!');
+            }).catch(() => {
+              toast.success('Payment confirmed!');
+              fetchProducts();
+              setCart([]);
+            });
+          }}
+          onCancel={() => setCryptoOpen(false)}
+        />
+      )}
 
       {/* ===== Paystack Verify Banner ===== */}
       {sessionStorage.getItem('paystack_reference') && !receipt && (

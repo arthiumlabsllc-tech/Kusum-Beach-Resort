@@ -4,6 +4,7 @@ import { AuthRequest } from '../middleware/auth';
 import { config } from '../config';
 import logger from '../lib/logger';
 import { paystackService } from '../services/paystackService';
+import { bconService } from '../services/bconService';
 
 // Record cash payment
 export const recordCashPayment = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -489,5 +490,86 @@ export const paystackWebhook = async (req: Request, res: Response): Promise<void
     logger.error('Paystack webhook error:', error);
     // Always return 200 to Paystack to prevent retries
     res.status(200).json({ status: 'error', message: error.message });
+  }
+};
+
+// =============================================
+// BCON GLOBAL CRYPTO PAYMENT ENDPOINTS
+// =============================================
+
+/**
+ * Initialize a BCon crypto invoice.
+ * Creates a payment address for the customer to send crypto to.
+ */
+export const bconInitialize = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { orderId, paymentCurrency, chain, originCurrency } = req.body;
+
+    if (!orderId || !paymentCurrency || !chain) {
+      res.status(400).json({ error: 'orderId, paymentCurrency, and chain are required' });
+      return;
+    }
+
+    // Fetch the order to get the total
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      res.status(404).json({ error: 'Order not found' });
+      return;
+    }
+
+    const amount = Number(order.total);
+    const currency = originCurrency || 'GHS';
+
+    const result = await bconService.createInvoice({
+      orderId: order.id,
+      paymentCurrency,
+      chain,
+      originAmount: amount,
+      originCurrency: currency,
+    });
+
+    res.json(result);
+  } catch (error: any) {
+    logger.error('BCon initialize error:', error);
+    res.status(500).json({ error: error.message || 'Failed to create crypto invoice' });
+  }
+};
+
+/**
+ * BCon webhook callback.
+ * Receives payment status updates when crypto is received.
+ */
+export const bconCallback = async (req: Request, res: Response): Promise<void> => {
+  try {
+    logger.info('BCon callback received:', JSON.stringify(req.body));
+    await bconService.processCallback(req.body);
+    res.status(200).json({ status: 'ok' });
+  } catch (error: any) {
+    logger.error('BCon callback error:', error);
+    // Always return 200 to prevent retries
+    res.status(200).json({ status: 'error', message: error.message });
+  }
+};
+
+/**
+ * Check crypto payment status (for frontend polling).
+ */
+export const bconCheckStatus = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { externalId } = req.params;
+
+    if (!externalId) {
+      res.status(400).json({ error: 'externalId is required' });
+      return;
+    }
+
+    const result = await bconService.checkPaymentStatus(externalId);
+    res.json(result);
+  } catch (error: any) {
+    logger.error('BCon check status error:', error);
+    res.status(500).json({ error: error.message || 'Failed to check payment status' });
   }
 };

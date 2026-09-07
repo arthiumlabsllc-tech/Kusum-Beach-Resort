@@ -35,6 +35,11 @@ export const config = {
   breetApiUrl: process.env.BREET_API_URL || '',
   breetApiKey: process.env.BREET_API_KEY || '',
 
+  // BCon Global (Crypto Payment Gateway)
+  bconApiUrl: process.env.BCON_API_URL || 'https://external-api.bcon.global',
+  bconApiKey: process.env.BCON_API_KEY || '',
+  bconCallbackUrl: process.env.BCON_CALLBACK_URL || '',
+
   // Africa's Talking (SMS)
   africastalkingApiKey: process.env.AFRICASTALKING_API_KEY || '',
   africastalkingUsername: process.env.AFRICASTALKING_USERNAME || 'sandbox',

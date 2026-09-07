@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiX, FiCheck, FiExternalLink } from 'react-icons/fi';
+import { FiX, FiCheck, FiExternalLink, FiDollarSign } from 'react-icons/fi';
 
 const paymentMethods = [
   { value: 'cash', label: 'Cash', icon: '💵' },
@@ -23,11 +23,13 @@ interface PaymentModalProps {
   onPaystackPay?: (paymentMethod: string) => void;
   /** Loading state for Paystack */
   paystackLoading?: boolean;
+  /** Called when user wants to pay with crypto */
+  onCryptoPay?: () => void;
 }
 
 const PaymentModal = ({
   open, total, onSubmit, onClose, submitting,
-  paystackEnabled, onPaystackPay, paystackLoading,
+  paystackEnabled, onPaystackPay, paystackLoading, onCryptoPay,
 }: PaymentModalProps) => {
   const [method, setMethod] = useState('cash');
   const [amountText, setAmountText] = useState('');
@@ -47,12 +49,16 @@ const PaymentModal = ({
   const amountPaid = parseFloat(amountText) || 0;
   const change = amountPaid - total;
   const usePaystack = paystackEnabled && isMobileMoney(method);
-  const canSubmit = !usePaystack && amountPaid >= total && !submitting;
+  const useCrypto = method === 'crypto_stablecoin';
+  const canSubmit = !usePaystack && !useCrypto && amountPaid >= total && !submitting;
 
   function handleSubmit() {
     if (usePaystack) {
-      // For MoMo, delegate to Paystack
       onPaystackPay?.(method);
+      return;
+    }
+    if (useCrypto) {
+      onCryptoPay?.();
       return;
     }
     if (amountPaid < total) {
@@ -116,7 +122,7 @@ const PaymentModal = ({
           </div>
 
           {/* Amount (only for Cash) */}
-          {!usePaystack && (
+          {!usePaystack && !useCrypto && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 Amount Received
@@ -155,8 +161,25 @@ const PaymentModal = ({
             </div>
           )}
 
+          {/* Crypto Info */}
+          {useCrypto && (
+            <div className="rounded-lg bg-purple-50 border border-purple-200 px-4 py-3 space-y-2">
+              <div className="flex items-center gap-2 text-purple-800">
+                <FiDollarSign className="text-purple-600" />
+                <span className="text-sm font-semibold">Pay with Cryptocurrency</span>
+              </div>
+              <p className="text-xs text-purple-700">
+                Accept crypto payments via BCon Global. Supports USDT, USDC, BTC, and ETH.
+                A unique payment address will be generated for this order.
+              </p>
+              <p className="text-[10px] text-purple-500">
+                The customer scans a QR code or sends crypto to the generated address. Payment is confirmed after blockchain confirmation.
+              </p>
+            </div>
+          )}
+
           {/* Change Preview (Cash only) */}
-          {!usePaystack && change > 0 && (
+          {!usePaystack && !useCrypto && change > 0 && (
             <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-green-800">Change Due</span>
@@ -165,7 +188,7 @@ const PaymentModal = ({
             </div>
           )}
 
-          {!usePaystack && amountPaid > 0 && amountPaid < total && (
+          {!usePaystack && !useCrypto && amountPaid > 0 && amountPaid < total && (
             <div className="rounded-lg bg-orange-50 border border-orange-200 px-4 py-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-orange-800">Still Due</span>
@@ -177,13 +200,13 @@ const PaymentModal = ({
 
         {/* Footer */}
         <div className="border-t border-gray-200 px-6 py-4 space-y-3">
-          {!usePaystack && (
+          {!usePaystack && !useCrypto && (
             <div className="flex items-center justify-between text-sm text-gray-600">
               <span>Tendered</span>
               <span className="font-medium">GHS {amountPaid.toFixed(2)}</span>
             </div>
           )}
-          {!usePaystack && change > 0 && (
+          {!usePaystack && !useCrypto && change > 0 && (
             <div className="flex items-center justify-between text-sm font-semibold text-gray-900">
               <span>Change</span>
               <span>GHS {change.toFixed(2)}</span>
@@ -191,9 +214,11 @@ const PaymentModal = ({
           )}
           <button
             onClick={handleSubmit}
-            disabled={usePaystack ? (paystackLoading || submitting) : !canSubmit}
+            disabled={usePaystack ? (paystackLoading || submitting) : useCrypto ? submitting : !canSubmit}
             className={`w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-lg font-semibold text-white shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${
-              usePaystack
+              useCrypto
+                ? 'bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800'
+                : usePaystack
                 ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700'
                 : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
             }`}
@@ -202,6 +227,11 @@ const PaymentModal = ({
               <>
                 <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
                 {paystackLoading ? 'Opening Paystack...' : 'Recording...'}
+              </>
+            ) : useCrypto ? (
+              <>
+                <FiDollarSign />
+                Pay with Crypto
               </>
             ) : usePaystack ? (
               <>
