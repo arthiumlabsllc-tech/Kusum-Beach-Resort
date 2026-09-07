@@ -118,7 +118,7 @@ const POSPage = () => {
         paymentMethod: method,
       });
 
-      const order = res.data;
+      const order = res.data.order;
       setReceipt({
         orderNumber: order.orderNumber,
         customerName: order.customerName,
@@ -126,13 +126,13 @@ const POSPage = () => {
         items: cart.map((item) => ({
           name: item.product?.name || 'Item',
           quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          total: item.total,
+          unitPrice: Number(item.unitPrice),
+          total: Number(item.total),
         })),
-        subtotal: order.subtotal,
-        discountAmount: order.discountAmount || 0,
-        taxAmount: order.taxAmount || 0,
-        total: order.total,
+        subtotal: Number(order.subtotal),
+        discountAmount: Number(order.discountAmount) || 0,
+        taxAmount: Number(order.taxAmount) || 0,
+        total: Number(order.total),
         paymentMethod: method,
         createdAt: order.createdAt,
         staffName: user.fullName || user.username || 'Staff',
