@@ -165,6 +165,26 @@ kusum-beach/
 
 ## Production Deployment
 
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete step-by-step instructions.
+
+### Quick Deploy ($0 Hosting Stack)
+
+| Service | Purpose | Free Tier |
+|---------|---------|----------|
+| **Vercel** | Frontend PWA | 100GB bandwidth |
+| **Render** | Backend API | 750 hours/month |
+| **Neon** | PostgreSQL | 0.5GB storage |
+
+**Total Monthly Cost: $0**
+
+```bash
+# 1. Push to GitHub (already done)
+# 2. Deploy backend to Render (connect repo, set root: server)
+# 3. Deploy frontend to Vercel (connect repo, set root: client)
+# 4. Set up Neon PostgreSQL (free)
+# 5. Configure environment variables
+```
+
 ### Build for Production
 
 ```bash

@@ -55,6 +55,17 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });
 });
 
+// Root info endpoint
+app.get('/', (_req, res) => {
+  res.json({
+    name: 'Kusum Beach Management Platform API',
+    version: '1.0.0',
+    status: 'running',
+    docs: '/api/v1',
+    health: '/health',
+  });
+});
+
 // =============================================
 // API ROUTES - RESTful Design
 // =============================================
