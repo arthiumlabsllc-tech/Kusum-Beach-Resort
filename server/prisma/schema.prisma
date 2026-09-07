@@ -1,0 +1,348 @@
+// =============================================
+// KUSUM BEACH MANAGEMENT PLATFORM - PRISMA SCHEMA
+// =============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================
+// ENUMS
+// =============================================
+
+enum UserRole {
+  owner
+  manager
+  supervisor
+  bartender
+  waitstaff
+}
+
+enum ProductUnit {
+  Bottle
+  Can
+  Glass
+  Shot
+  Pitcher
+  Carton
+  Cup
+  Jug
+  Pack
+}
+
+enum ProductStatus {
+  active
+  discontinued
+  out_of_stock
+}
+
+enum MovementType {
+  sale
+  arrival
+  adjustment
+  wastage
+  return
+}
+
+enum CustomerType {
+  walkin
+  table
+  event
+  takeaway
+}
+
+enum DiscountType {
+  percentage
+  fixed
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  cancelled
+  refunded
+}
+
+enum OrderStatus {
+  received
+  preparing
+  ready
+  served
+  cancelled
+}
+
+enum PaymentMethod {
+  cash
+  momo_mtn
+  momo_vodafone
+  momo_airteltigo
+  crypto_stablecoin
+  crypto_other
+}
+
+enum PaymentRecordStatus {
+  pending
+  completed
+  failed
+  refunded
+}
+
+enum AlertType {
+  warning
+  critical
+  out_of_stock
+}
+
+enum RecipientType {
+  sms
+  email
+  both
+}
+
+enum ShiftStatus {
+  scheduled
+  in_progress
+  completed
+  missed
+}
+
+// =============================================
+// MODELS
+// =============================================
+
+model User {
+  id            Int       @id @default(autoincrement())
+  username      String    @unique @db.VarChar(50)
+  passwordHash  String    @map("password_hash") @db.VarChar(255)
+  fullName      String    @map("full_name") @db.VarChar(100)
+  phone         String?   @db.VarChar(15)
+  email         String?   @db.VarChar(100)
+  role          UserRole  @default(waitstaff)
+  isActive      Boolean   @default(true) @map("is_active")
+  lastLogin     DateTime? @map("last_login")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  stockMovements  StockMovement[]  @relation("StockMovementCreator")
+  orders          Order[]          @relation("OrderCreator")
+  payments        Payment[]        @relation("PaymentCreator")
+  alertLogs       AlertLog[]       @relation("AlertAcknowledger")
+  alertRecipients AlertRecipient[]
+  shifts          Shift[]          @relation("ShiftUser")
+  createdShifts   Shift[]          @relation("ShiftCreator")
+  settingsUpdates SystemSetting[]  @relation("SettingsUpdater")
+
+  @@map("users")
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique @db.VarChar(50)
+  description String?   @db.Text
+  icon        String?   @db.VarChar(50)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id              Int           @id @default(autoincrement())
+  name            String        @db.VarChar(100)
+  categoryId      Int           @map("category_id")
+  unit            ProductUnit
+  stockQuantity   Int           @default(0) @map("stock_quantity")
+  reorderLevel    Int           @default(10) @map("reorder_level")
+  reorderQuantity Int           @default(20) @map("reorder_quantity")
+  buyingPrice     Decimal       @map("buying_price") @db.Decimal(10, 2)
+  sellingPrice    Decimal       @map("selling_price") @db.Decimal(10, 2)
+  supplier        String?       @db.VarChar(100)
+  expiryDate      DateTime?     @map("expiry_date") @db.Date
+  imageUrl        String?       @map("image_url") @db.VarChar(255)
+  barcode         String?       @db.VarChar(50)
+  status          ProductStatus @default(active)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  category       Category        @relation(fields: [categoryId], references: [id])
+  stockMovements StockMovement[]
+  orderItems     OrderItem[]
+  alertLogs      AlertLog[]
+
+  @@index([categoryId])
+  @@index([status])
+  @@index([name])
+  @@map("products")
+}
+
+model StockMovement {
+  id               Int          @id @default(autoincrement())
+  productId        Int          @map("product_id")
+  quantityChange   Int          @map("quantity_change")
+  movementType     MovementType @map("movement_type")
+  reference        String?      @db.VarChar(100)
+  notes            String?      @db.Text
+  previousQuantity Int?         @map("previous_quantity")
+  newQuantity      Int?         @map("new_quantity")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  createdById      Int?         @map("created_by")
+
+  // Relations
+  product   Product @relation(fields: [productId], references: [id])
+  createdBy User?   @relation("StockMovementCreator", fields: [createdById], references: [id])
+
+  @@index([productId])
+  @@index([createdAt])
+  @@map("stock_movements")
+}
+
+model Order {
+  id             Int           @id @default(autoincrement())
+  orderNumber    String        @unique @map("order_number") @db.VarChar(20)
+  customerType   CustomerType  @default(walkin) @map("customer_type")
+  customerName   String?       @map("customer_name") @db.VarChar(100)
+  tableNumber    String?       @map("table_number") @db.VarChar(10)
+  eventName      String?       @map("event_name") @db.VarChar(100)
+  subtotal       Decimal       @default(0) @db.Decimal(10, 2)
+  discountType   DiscountType? @map("discount_type")
+  discountValue  Decimal?      @default(0) @map("discount_value") @db.Decimal(10, 2)
+  discountAmount Decimal       @default(0) @map("discount_amount") @db.Decimal(10, 2)
+  taxRate        Decimal       @default(0) @map("tax_rate") @db.Decimal(5, 2)
+  taxAmount      Decimal       @default(0) @map("tax_amount") @db.Decimal(10, 2)
+  total          Decimal       @default(0) @db.Decimal(10, 2)
+  paymentStatus  PaymentStatus @default(pending) @map("payment_status")
+  orderStatus    OrderStatus   @default(received) @map("order_status")
+  notes          String?       @db.Text
+  createdAt      DateTime      @default(now()) @map("created_at")
+  createdById    Int?          @map("created_by")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  items    OrderItem[]
+  payments Payment[]
+  createdBy User? @relation("OrderCreator", fields: [createdById], references: [id])
+
+  @@index([createdAt])
+  @@index([paymentStatus])
+  @@index([orderStatus])
+  @@index([createdById])
+  @@map("orders")
+}
+
+model OrderItem {
+  id         Int      @id @default(autoincrement())
+  orderId    Int      @map("order_id")
+  productId  Int      @map("product_id")
+  quantity   Int
+  unitPrice  Decimal  @map("unit_price") @db.Decimal(10, 2)
+  total      Decimal  @db.Decimal(10, 2)
+  notes      String?  @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model Payment {
+  id            Int               @id @default(autoincrement())
+  orderId       Int               @map("order_id")
+  paymentMethod PaymentMethod     @map("payment_method")
+  amount        Decimal           @db.Decimal(10, 2)
+  transactionId String?           @map("transaction_id") @db.VarChar(100)
+  paymentData   Json?             @map("payment_data")
+  status        PaymentRecordStatus @default(pending)
+  settledAt     DateTime?         @map("settled_at")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  createdById   Int?              @map("created_by")
+
+  // Relations
+  order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  createdBy User? @relation("PaymentCreator", fields: [createdById], references: [id])
+
+  @@index([orderId])
+  @@index([status])
+  @@map("payments")
+}
+
+model AlertLog {
+  id              Int       @id @default(autoincrement())
+  productId       Int       @map("product_id")
+  alertType       AlertType @map("alert_type")
+  message         String    @db.Text
+  isAcknowledged  Boolean   @default(false) @map("is_acknowledged")
+  acknowledgedAt  DateTime? @map("acknowledged_at")
+  acknowledgedById Int?     @map("acknowledged_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  product        Product @relation(fields: [productId], references: [id])
+  acknowledgedBy User?   @relation("AlertAcknowledger", fields: [acknowledgedById], references: [id])
+
+  @@index([productId])
+  @@index([isAcknowledged])
+  @@map("alert_logs")
+}
+
+model AlertRecipient {
+  id            Int           @id @default(autoincrement())
+  userId        Int           @map("user_id")
+  recipientType RecipientType @map("recipient_type")
+  contactValue  String        @map("contact_value") @db.VarChar(100)
+  isActive      Boolean       @default(true) @map("is_active")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("alert_recipients")
+}
+
+model Shift {
+  id          Int         @id @default(autoincrement())
+  userId      Int         @map("user_id")
+  shiftDate   DateTime    @map("shift_date") @db.Date
+  startTime   DateTime    @map("start_time") @db.Time
+  endTime     DateTime    @map("end_time") @db.Time
+  actualStart DateTime?   @map("actual_start")
+  actualEnd   DateTime?   @map("actual_end")
+  status      ShiftStatus @default(scheduled)
+  notes       String?     @db.Text
+  createdAt   DateTime    @default(now()) @map("created_at")
+  createdById Int?        @map("created_by")
+
+  // Relations
+  user      User  @relation("ShiftUser", fields: [userId], references: [id])
+  createdBy User? @relation("ShiftCreator", fields: [createdById], references: [id])
+
+  @@index([userId])
+  @@index([shiftDate])
+  @@map("shifts")
+}
+
+model SystemSetting {
+  id          Int      @id @default(autoincrement())
+  settingKey  String   @unique @map("setting_key") @db.VarChar(50)
+  settingValue String? @map("setting_value") @db.Text
+  description String?  @db.Text
+  updatedAt   DateTime @default(now()) @map("updated_at")
+  updatedById Int?     @map("updated_by")
+
+  // Relations
+  updatedBy User? @relation("SettingsUpdater", fields: [updatedById], references: [id])
+
+  @@map("system_settings")
+}
